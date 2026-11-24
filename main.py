@@ -28,8 +28,15 @@ def compose() -> str:
 def validate(text: str) -> None:
     if not text or not text.strip():
         raise ValueError("excuse must not be blank")
-    if "\n" in text or "\r" in text:
-        raise ValueError("excuse must stay on one line")
+    if "\n" in text or "\r" in text or "\t" in text:
+        raise ValueError("excuse must stay on one line, with no tabs")
+    if "  " in text:
+        raise ValueError("excuse must use single spaces between words")
+    for piece in (OPENING, ALIBI, CONCLUSION):
+        if not piece:
+            raise ValueError("excuse pieces must not be empty")
+    if len(OPENING) + len(ALIBI) + len(CONCLUSION) != len(compose()):
+        raise ValueError("excuse pieces do not add up to the composed line")
     if len(text) > LIMIT:
         raise ValueError(f"excuse is {len(text)} chars, over the {LIMIT} limit")
     if text != text.strip():
@@ -52,10 +59,14 @@ def main() -> None:
     excuse = compose()
     validate(excuse)
     DESTINATION.parent.mkdir(parents=True, exist_ok=True)
-    DESTINATION.write_bytes(excuse.encode("utf-8"))
+    expected = excuse.encode("utf-8")
+    written = DESTINATION.write_bytes(expected)
+    if written != len(expected):
+        raise SystemExit("short write: entry file is incomplete")
     on_disk = DESTINATION.read_bytes()
-    if on_disk != excuse.encode("utf-8"):
+    if on_disk != expected:
         raise SystemExit("written bytes differ from the validated excuse")
+    validate(on_disk.decode("utf-8"))
     print(excuse)
 
 
