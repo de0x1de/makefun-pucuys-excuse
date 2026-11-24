@@ -53,6 +53,10 @@ def validate(text: str) -> None:
             raise ValueError(f"excuse is missing its key phrase: {marker}")
     if compose() != text:
         raise ValueError("excuse does not match its assembled pieces")
+    if text.split(" ").count("Tuesday") != 1:
+        raise ValueError("excuse must name its Tuesday exactly once")
+    if not ALIBI.startswith("where") or not CONCLUSION.startswith("and"):
+        raise ValueError("excuse pieces lost their connective shape")
 
 
 def main() -> None:
